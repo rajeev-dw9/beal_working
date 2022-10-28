@@ -28,7 +28,7 @@ class FundusSegmentation(Dataset):
         :param transform: transform to apply
         """
         # super().__init__()
-        self._base_dir = base_dir #  self._base_dir = '/content/drive/MyDrive/fundus/fundus' 
+        self._base_dir = '/content/drive/MyDrive/fundus/fundus' 
         self.image_list = []
         self.split = split
 
@@ -40,12 +40,13 @@ class FundusSegmentation(Dataset):
 
         self._image_dir = os.path.join(self._base_dir, dataset, split, 'image')
         print(self._image_dir)
-        imagelist = glob(self._image_dir + "/*.png")
+        imagelist = glob(self._image_dir + "/*.jpg")
         for image_path in imagelist:
-            gt_path = image_path.replace('image', 'mask')
+            gt_path = image_path.replace('image', 'mask').replace('jpg','bmp')
             self.image_list.append({'image': image_path, 'label': gt_path, 'id': testid})
 
         self.transform = transform
+        # print(self.image_list)
         self._read_img_into_memory()
         # Display stats
         print('Number of images in {}: {:d}'.format(split, len(self.image_list)))
