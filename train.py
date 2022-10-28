@@ -4,7 +4,6 @@ import os.path as osp
 
 
 
-
 # PyTorch includes
 import torch
 from torchvision import transforms
@@ -23,11 +22,11 @@ from networks.deeplabv3 import * # import the class deeplabv3 from networks/deep
 from networks.GAN import BoundaryDiscriminator, UncertaintyDiscriminator # import the class BoundaryDiscriminator, UncertaintyDiscriminator from networks/GAN.py 
 
 
-here = osp.dirname(osp.abspath(__file__)) # here = /home/sjwang/PycharmProjects/DAF 
+here = osp.dirname(osp.abspath(__file__)) 
 
 def main():
     parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter, 
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,  
         )
     parser.add_argument('-g', '--gpu', type=int, default=0, help='gpu id') # gpu id 
     parser.add_argument('--resume', default=None, help='checkpoint path') # checkpoint path 
@@ -36,7 +35,7 @@ def main():
     # https://github.com/shelhamer/fcn.berkeleyvision.org
     parser.add_argument(        '--datasetS', type=str, default='refuge', help='test folder id contain images ROIs to test'    )
     parser.add_argument(        '--datasetT', type=str, default='Drishti-GS', help='refuge / Drishti-GS/ RIM-ONE_r3')
-    parser.add_argument(        '--batch-size', type=int, default=8, help='batch size for training the model')
+    parser.add_argument(        '--batch_size', type=int, default=8, help='batch size for training the model')
     parser.add_argument(        '--group-num', type=int, default=1, help='group number for group normalization')
     parser.add_argument(        '--max-epoch', type=int, default=200, help='max epoch')
     parser.add_argument(        '--stop-epoch', type=int, default=200, help='stop epoch')
@@ -47,7 +46,7 @@ def main():
     parser.add_argument(        '--lr-decrease-rate', type=float, default=0.1, help='ratio multiplied to initial lr',)
     parser.add_argument(        '--weight-decay', type=float, default=0.0005, help='weight decay',)
     parser.add_argument(        '--momentum', type=float, default=0.99, help='momentum',)
-    parser.add_argument(        '--data-dir',default='/home/sjwang/ssd1T/fundus/domain_adaptation/',help='data root path')
+    parser.add_argument(        '--data_dir',default='/content/drive/MyDrive/fundus/fundus',help='data root path')
     parser.add_argument(        '--pretrained-model',default='../../../models/pytorch/fcn16s_from_caffe.pth',help='pretrained model of FCN16s',)
     parser.add_argument(        '--out-stride',type=int,        default=16,        help='out-stride of deeplabv3+',)
     parser.add_argument(        '--sync-bn',        type=bool,        default=True,        help='sync-bn in deeplabv3+',)
@@ -58,7 +57,7 @@ def main():
     args.model = 'FCN8s' # model name 
 
     now = datetime.now() # current date and time
-    args.out = osp.join(here, 'logs', args.datasetT, now.strftime('%Y%m%d_%H%M%S.%f')) # out = /home/sjwang/PycharmProjects/DAF/logs/Drishti-GS/20201019_153000.000000
+    args.out = osp.join(here, 'logs', args.datasetT, now.strftime('%Y%m%d_%H%M%S.%f')) # output path  
 
     os.makedirs(args.out) # create the folder args.out
     with open(osp.join(args.out, 'config.yaml'), 'w') as f: # open the file config.yaml in the folder args.out
@@ -91,14 +90,11 @@ def main():
         tr.ToTensor()
     ])
 
-    domain = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetS, split='train',
-                                                         transform=composed_transforms_tr)
+    domain = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetS, split='train',transform=composed_transforms_tr)
     domain_loaderS = DataLoader(domain, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True)
-    domain_T = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',
-                                                             transform=composed_transforms_tr)
+    domain_T = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',transform=composed_transforms_tr)
     domain_loaderT = DataLoader(domain_T, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
-    domain_val = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',
-                                       transform=composed_transforms_ts)
+    domain_val = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train', transform=composed_transforms_ts)
     domain_loader_val = DataLoader(domain_val, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
     # 2. model

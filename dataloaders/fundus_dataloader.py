@@ -16,7 +16,7 @@ class FundusSegmentation(Dataset):
     """
 
     def __init__(self,
-                 base_dir=Path.db_root_dir('fundus'),
+                 base_dir=Path.db_root_dir('fundus'), # 
                  dataset='refuge',
                  split='train',
                  testid=None,
