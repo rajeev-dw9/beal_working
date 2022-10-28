@@ -28,7 +28,7 @@ class FundusSegmentation(Dataset):
         :param transform: transform to apply
         """
         # super().__init__()
-        self._base_dir = base_dir
+        self._base_dir = base_dir #  self._base_dir = '/content/drive/MyDrive/fundus/fundus' 
         self.image_list = []
         self.split = split
 
