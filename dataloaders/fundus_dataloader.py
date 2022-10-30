@@ -40,7 +40,7 @@ class FundusSegmentation(Dataset):
 
         self._image_dir = os.path.join(self._base_dir, dataset, split, 'image')
         print(self._image_dir)
-        imagelist = glob(self._image_dir + "/*.jpg")
+        imagelist = glob(self._image_dir + "/*")
         for image_path in imagelist:
             gt_path = image_path.replace('image', 'mask').replace('jpg','bmp')
             self.image_list.append({'image': image_path, 'label': gt_path, 'id': testid})

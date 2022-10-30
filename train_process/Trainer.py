@@ -46,8 +46,7 @@ class Trainer(object):
         self.domain_loaderS = domain_loaderS
         self.domain_loaderT = domain_loaderT
         self.time_zone = 'Asia/Hong_Kong'
-        self.timestamp_start = \
-            datetime.now(pytz.timezone(self.time_zone))
+        self.timestamp_start = datetime.now(pytz.timezone(self.time_zone))
 
         if interval_validate is None:
             self.interval_validate = int(10)
