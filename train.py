@@ -22,18 +22,16 @@ from networks.deeplabv3 import * # import the class deeplabv3 from networks/deep
 from networks.GAN import BoundaryDiscriminator, UncertaintyDiscriminator # import the class BoundaryDiscriminator, UncertaintyDiscriminator from networks/GAN.py 
 
 
-here = osp.dirname(osp.abspath(__file__)) 
+here = osp.dirname(osp.abspath(__file__)) # this is for the path of the current file 
 
 def main():
-    parser = argparse.ArgumentParser(
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,  
-        )
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,) # ArgumentParser is a class that helps you write user-friendly command-line interfaces
     parser.add_argument('-g', '--gpu', type=int, default=0, help='gpu id') # gpu id 
     parser.add_argument('--resume', default=None, help='checkpoint path') # checkpoint path 
 
     # configurations (same configuration as original work)
     # https://github.com/shelhamer/fcn.berkeleyvision.org
-    parser.add_argument(        '--datasetS', type=str, default='refuge', help='test folder id contain images ROIs to test'    )
+    parser.add_argument(        '--datasetS', type=str, default='refuge', help='test folder id contain images ROIs to test')
     parser.add_argument(        '--datasetT', type=str, default='Drishti-GS', help='refuge / Drishti-GS/ RIM-ONE_r3')
     parser.add_argument(        '--batch_size', type=int, default=8, help='batch size for training the model')
     parser.add_argument(        '--group-num', type=int, default=1, help='group number for group normalization')
@@ -48,9 +46,9 @@ def main():
     parser.add_argument(        '--momentum', type=float, default=0.99, help='momentum',)
     parser.add_argument(        '--data_dir',default='/content/drive/MyDrive/fundus/fundus',help='data root path')
     parser.add_argument(        '--pretrained-model',default='../../../models/pytorch/fcn16s_from_caffe.pth',help='pretrained model of FCN16s',)
-    parser.add_argument(        '--out-stride',type=int,        default=16,        help='out-stride of deeplabv3+',)
-    parser.add_argument(        '--sync-bn',        type=bool,        default=True,        help='sync-bn in deeplabv3+',)
-    parser.add_argument(        '--freeze-bn',        type=bool,        default=False,        help='freeze batch normalization of deeplabv3+',)
+    parser.add_argument(        '--out-stride',type=int, default=16,help='out-stride of deeplabv3+',)
+    parser.add_argument(        '--sync-bn',  type=bool, default=True,help='sync-bn in deeplabv3+',)
+    parser.add_argument(        '--freeze-bn', type=bool, default=False,  help='freeze batch normalization of deeplabv3+',)
 
     args = parser.parse_args() # parse the arguments 
 
@@ -90,9 +88,9 @@ def main():
         tr.ToTensor()
     ])
 
-    domain = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetS, split='train',transform=composed_transforms_tr)
-    domain_loaderS = DataLoader(domain, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True)
-    domain_T = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',transform=composed_transforms_tr)
+    domain = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetS, split='train',transform=composed_transforms_tr) # load the dataset
+    domain_loaderS = DataLoader(domain, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True) # load the Source domain dataset 
+    domain_T = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',transform=composed_transforms_tr) # load the target domain dataset
     domain_loaderT = DataLoader(domain_T, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
     domain_val = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train', transform=composed_transforms_ts)
     domain_loader_val = DataLoader(domain_val, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)

@@ -203,16 +203,18 @@ class Trainer(object):
         loss_adv_diff_data = 0
         loss_D_same_data = 0
         loss_D_diff_data = 0
-
-        domain_t_loader = enumerate(self.domain_loaderT)
+## sampleS is the source domain data
+## sampleT is the target domain data
+## batch_idx is the index of the batch
+        domain_t_loader = enumerate(self.domain_loaderT) # target domain loader iterator    
         start_time = timeit.default_timer()
-        for batch_idx, sampleS in tqdm.tqdm(
-                enumerate(self.domain_loaderS), total=len(self.domain_loaderS),
-                desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
+        for batch_idx, sampleS in tqdm.tqdm( # source domain loader iterator 
+                enumerate(self.domain_loaderS), total=len(self.domain_loaderS),  # len(self.domain_loaderS) is the number of batches in the source domain loader
+                desc='Train epoch=%d' % self.epoch, ncols=80, leave=False): 
 
-            metrics = []
+            metrics = [] # metrics is a list of lists
 
-            iteration = batch_idx + self.epoch * len(self.domain_loaderS)
+            iteration = batch_idx + self.epoch * len(self.domain_loaderS) 
             self.iteration = iteration
 
             assert self.model_gen.training
@@ -235,7 +237,7 @@ class Trainer(object):
             target_map = sampleS['map'].cuda()
             target_boundary = sampleS['boundary'].cuda()
 
-            oS, boundaryS = self.model_gen(imageS)
+            oS, boundaryS = self.model_gen(imageS) # oS is the output of the generator network for the source domain image 
 
             loss_seg1 = bceloss(torch.sigmoid(oS), target_map)
             loss_seg2 = mseloss(torch.sigmoid(boundaryS), target_boundary)
@@ -401,10 +403,9 @@ class Trainer(object):
 
 
     def train(self):
-        for epoch in tqdm.trange(self.epoch, self.max_epoch,
-                                 desc='Train', ncols=80):
+        for epoch in tqdm.trange(self.epoch, self.max_epoch,desc='Train', ncols=80):
             self.epoch = epoch
-            self.train_epoch()
+            self.train_epoch() # train for one epoch
             if self.stop_epoch == self.epoch:
                 print('Stop epoch at %d' % self.stop_epoch)
                 break

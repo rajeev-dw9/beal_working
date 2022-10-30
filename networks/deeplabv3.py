@@ -10,7 +10,8 @@ from networks.backbone import build_backbone
 class DeepLab(nn.Module):
     def __init__(self, backbone='resnet', output_stride=16, num_classes=21,
                  sync_bn=True, freeze_bn=False):
-        super(DeepLab, self).__init__()
+        super(DeepLab, self).__init__()# initialize the super class
+        # super class is nn.Module is the base class for all neural network modules
         if backbone == 'drn':
             output_stride = 8
 
