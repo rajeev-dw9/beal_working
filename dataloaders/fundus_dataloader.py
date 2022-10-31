@@ -17,7 +17,7 @@ class FundusSegmentation(Dataset):
 
     def __init__(self,
                  base_dir=Path.db_root_dir('fundus'), # 
-                 dataset='refuge',
+                 dataset='',
                  split='train',
                  testid=None,
                  transform=None
@@ -42,7 +42,7 @@ class FundusSegmentation(Dataset):
         print(self._image_dir)
         imagelist = glob(self._image_dir + "/*")
         for image_path in imagelist:
-            gt_path = image_path.replace('image', 'mask') #.replace('jpg','bmp')
+            gt_path = image_path.replace('image', 'mask').replace('jpg','bmp')
             self.image_list.append({'image': image_path, 'label': gt_path, 'id': testid})
 
         self.transform = transform

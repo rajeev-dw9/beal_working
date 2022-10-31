@@ -235,8 +235,12 @@ class Trainer(object):
             imageS = sampleS['image'].cuda()
             target_map = sampleS['map'].cuda()
             target_boundary = sampleS['boundary'].cuda()
+            print('*************************************')
+            print('Model',self.model_gen)
+            print('*************************************')
+            print('imageS',imageS.size())
 
-            oS, boundaryS = self.model_gen(imageS) # oS is the output of the generator network for the source domain image 
+            oS,boundaryS, _ = self.model_gen(imageS) # oS is the output of the generator network for the source domain image 
 
             loss_seg1 = bceloss(torch.sigmoid(oS), target_map)
             loss_seg2 = mseloss(torch.sigmoid(boundaryS), target_boundary)
