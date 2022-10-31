@@ -21,6 +21,7 @@ from dataloaders import custom_transforms as tr # import the class custom_transf
 from networks.deeplabv3 import * # import the class deeplabv3 from networks/deeplabv3.py 
 from networks.GAN import BoundaryDiscriminator, UncertaintyDiscriminator # import the class BoundaryDiscriminator, UncertaintyDiscriminator from networks/GAN.py 
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
 
 here = osp.dirname(osp.abspath(__file__)) # this is for the path of the current file 
 
@@ -90,7 +91,7 @@ def main():
 
     domain = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetS, split='train',transform=composed_transforms_tr) # load the dataset
     domain_loaderS = DataLoader(domain, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True) # load the Source domain dataset 
-    domain_T = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train',transform=composed_transforms_tr) # load the target domain dataset
+    domain_T = DL.FundusSegmentation2(base_dir=args.data_dir, dataset=args.datasetT, split='train',transform=composed_transforms_tr) # load the target domain dataset
     domain_loaderT = DataLoader(domain_T, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
     domain_val = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.datasetT, split='train', transform=composed_transforms_ts)
     domain_loader_val = DataLoader(domain_val, batch_size=args.batch_size, shuffle=False, num_workers=2, pin_memory=True)
