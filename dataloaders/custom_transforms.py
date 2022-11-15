@@ -337,14 +337,7 @@ class RandomScaleCrop(object):
         self.crop = RandomCrop(self.size)
 
     def __call__(self, sample):
-        print('&&&&&&&&&&&&&&')
-        print('sample',sample)
-        print('sample imh',sample['image'].size())
-        imsave('try.jpg',sample['image'])
-
-        print('&&&&&&&&&&&&&&')
         img = sample['image']
-        print('name image',sample['img_name'])
         mask = sample['label']
         name = sample['img_name']
         # print(img.size)

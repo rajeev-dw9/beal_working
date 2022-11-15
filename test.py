@@ -32,7 +32,7 @@ def main():
 
     parser.add_argument(
         '--data-dir',
-        default='/content/drive/MyDrive/fundus/fundus',
+        default='/home/sjwang/ssd1T/fundus/domain_adaptation/',
         help='data root path'
     )
     parser.add_argument(
@@ -74,8 +74,12 @@ def main():
     model_file = args.model_file
 
     # 1. dataset
-    composed_transforms_test = transforms.Compose([ tr.Normalize_tf(),  tr.ToTensor() ])
-    db_test = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.dataset, split='test',transform=composed_transforms_test)
+    composed_transforms_test = transforms.Compose([
+        tr.Normalize_tf(),
+        tr.ToTensor()
+    ])
+    db_test = DL.FundusSegmentation(base_dir=args.data_dir, dataset=args.dataset, split='test',
+                                    transform=composed_transforms_test)
 
     test_loader = DataLoader(db_test, batch_size=1, shuffle=False, num_workers=1)
 

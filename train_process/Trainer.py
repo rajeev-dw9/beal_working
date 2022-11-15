@@ -20,9 +20,11 @@ from utils.Utils import *
 bceloss = torch.nn.BCELoss()
 mseloss = torch.nn.MSELoss()
 
+
 def get_lr(optimizer):
     for param_group in optimizer.param_groups:
         return param_group['lr']
+
 
 class Trainer(object):
 
@@ -46,7 +48,8 @@ class Trainer(object):
         self.domain_loaderS = domain_loaderS
         self.domain_loaderT = domain_loaderT
         self.time_zone = 'Asia/Hong_Kong'
-        self.timestamp_start = datetime.now(pytz.timezone(self.time_zone))
+        self.timestamp_start = \
+            datetime.now(pytz.timezone(self.time_zone))
 
         if interval_validate is None:
             self.interval_validate = int(10)
@@ -90,7 +93,6 @@ class Trainer(object):
         self.best_mean_dice = 0.0
         self.best_epoch = -1
 
-
     def validate(self):
         training = self.model_gen.training
         self.model_gen.eval()
@@ -109,26 +111,32 @@ class Trainer(object):
                 target_map = sample['map']
                 target_boundary = sample['boundary']
                 if self.cuda:
-                    data, target_map, target_boundary = data.cuda(), target_map.cuda(), target_boundary.cuda()
+                    data, target_map, target_boundary = data.cuda(
+                    ), target_map.cuda(), target_boundary.cuda()
                 with torch.no_grad():
                     predictions, boundary = self.model_gen(data)
 
-                loss = F.binary_cross_entropy_with_logits(predictions, target_map)
+                loss = F.binary_cross_entropy_with_logits(
+                    predictions, target_map)
                 loss_data = loss.data.item()
                 if np.isnan(loss_data):
                     raise ValueError('loss is nan while validating')
                 val_loss += loss_data
 
-                dice_cup, dice_disc = dice_coeff_2label(predictions, target_map)
+                dice_cup, dice_disc = dice_coeff_2label(
+                    predictions, target_map)
                 val_cup_dice += dice_cup
                 val_disc_dice += dice_disc
             val_loss /= len(self.val_loader)
             val_cup_dice /= len(self.val_loader)
             val_disc_dice /= len(self.val_loader)
             metrics.append((val_loss, val_cup_dice, val_disc_dice))
-            self.writer.add_scalar('val_data/loss_CE', val_loss, self.epoch * (len(self.domain_loaderS)))
-            self.writer.add_scalar('val_data/val_CUP_dice', val_cup_dice, self.epoch * (len(self.domain_loaderS)))
-            self.writer.add_scalar('val_data/val_DISC_dice', val_disc_dice, self.epoch * (len(self.domain_loaderS)))
+            self.writer.add_scalar(
+                'val_data/loss_CE', val_loss, self.epoch * (len(self.domain_loaderS)))
+            self.writer.add_scalar(
+                'val_data/val_CUP_dice', val_cup_dice, self.epoch * (len(self.domain_loaderS)))
+            self.writer.add_scalar(
+                'val_data/val_DISC_dice', val_disc_dice, self.epoch * (len(self.domain_loaderS)))
 
             mean_dice = val_cup_dice + val_disc_dice
             is_best = mean_dice > self.best_mean_dice
@@ -155,35 +163,35 @@ class Trainer(object):
                 if (self.epoch + 1) % 50 == 0:
                     torch.save({
                         'epoch': self.epoch,
-                    'iteration': self.iteration,
-                    'arch': self.model_gen.__class__.__name__,
-                    'optim_state_dict': self.optim_gen.state_dict(),
-                    'optim_dis_state_dict': self.optim_dis.state_dict(),
-                    'optim_dis2_state_dict': self.optim_dis2.state_dict(),
-                    'model_state_dict': self.model_gen.state_dict(),
-                    'model_dis_state_dict': self.model_dis.state_dict(),
-                    'model_dis2_state_dict': self.model_dis2.state_dict(),
-                    'learning_rate_gen': get_lr(self.optim_gen),
-                    'learning_rate_dis': get_lr(self.optim_dis),
-                    'learning_rate_dis2': get_lr(self.optim_dis2),
-                    'best_mean_dice': self.best_mean_dice,
+                        'iteration': self.iteration,
+                        'arch': self.model_gen.__class__.__name__,
+                        'optim_state_dict': self.optim_gen.state_dict(),
+                        'optim_dis_state_dict': self.optim_dis.state_dict(),
+                        'optim_dis2_state_dict': self.optim_dis2.state_dict(),
+                        'model_state_dict': self.model_gen.state_dict(),
+                        'model_dis_state_dict': self.model_dis.state_dict(),
+                        'model_dis2_state_dict': self.model_dis2.state_dict(),
+                        'learning_rate_gen': get_lr(self.optim_gen),
+                        'learning_rate_dis': get_lr(self.optim_dis),
+                        'learning_rate_dis2': get_lr(self.optim_dis2),
+                        'best_mean_dice': self.best_mean_dice,
                     }, osp.join(self.out, 'checkpoint_%d.pth.tar' % (self.epoch + 1)))
-
 
             with open(osp.join(self.out, 'log.csv'), 'a') as f:
                 elapsed_time = (
                     datetime.now(pytz.timezone(self.time_zone)) -
                     self.timestamp_start).total_seconds()
                 log = [self.epoch, self.iteration] + [''] * 5 + \
-                       list(metrics) + [elapsed_time] + ['best model epoch: %d' % self.best_epoch]
+                    list(metrics) + [elapsed_time] + \
+                    ['best model epoch: %d' % self.best_epoch]
                 log = map(str, log)
                 f.write(','.join(log) + '\n')
-            self.writer.add_scalar('best_model_epoch', self.best_epoch, self.epoch * (len(self.domain_loaderS)))
+            self.writer.add_scalar(
+                'best_model_epoch', self.best_epoch, self.epoch * (len(self.domain_loaderS)))
             if training:
                 self.model_gen.train()
                 self.model_dis.train()
                 self.model_dis2.train()
-
 
     def train_epoch(self):
         source_domain_label = 1
@@ -202,18 +210,16 @@ class Trainer(object):
         loss_adv_diff_data = 0
         loss_D_same_data = 0
         loss_D_diff_data = 0
-## sampleS is the source domain data
-## sampleT is the target domain data
-## batch_idx is the index of the batch
-        domain_t_loader = enumerate(self.domain_loaderT) # target domain loader iterator    
+
+        domain_t_loader = enumerate(self.domain_loaderT)
         start_time = timeit.default_timer()
-        for batch_idx, sampleS in tqdm.tqdm( # source domain loader iterator 
-                enumerate(self.domain_loaderS), total=len(self.domain_loaderS),  # len(self.domain_loaderS) is the number of batches in the source domain loader
-                desc='Train epoch=%d' % self.epoch, ncols=80, leave=False): 
+        for batch_idx, sampleS in tqdm.tqdm(
+                enumerate(self.domain_loaderS), total=len(self.domain_loaderS),
+                desc='Train epoch=%d' % self.epoch, ncols=80, leave=False):
 
-            metrics = [] # metrics is a list of lists
+            metrics = []
 
-            iteration = batch_idx + self.epoch * len(self.domain_loaderS) 
+            iteration = batch_idx + self.epoch * len(self.domain_loaderS)
             self.iteration = iteration
 
             assert self.model_gen.training
@@ -235,12 +241,8 @@ class Trainer(object):
             imageS = sampleS['image'].cuda()
             target_map = sampleS['map'].cuda()
             target_boundary = sampleS['boundary'].cuda()
-            print('*************************************')
-            print('Model',self.model_gen)
-            print('*************************************')
-            print('imageS',imageS.size())
 
-            oS,boundaryS, _ = self.model_gen(imageS) # oS is the output of the generator network for the source domain image 
+            oS, boundaryS, _ = self.model_gen(imageS)
 
             loss_seg1 = bceloss(torch.sigmoid(oS), target_map)
             loss_seg2 = mseloss(torch.sigmoid(boundaryS), target_boundary)
@@ -263,19 +265,28 @@ class Trainer(object):
                 self.writer.add_image('DomainS/image', grid_image, iteration)
                 grid_image = make_grid(
                     target_map[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/target_cup', grid_image, iteration)
+                self.writer.add_image(
+                    'DomainS/target_cup', grid_image, iteration)
                 grid_image = make_grid(
                     target_map[0, 1, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/target_disc', grid_image, iteration)
+                self.writer.add_image(
+                    'DomainS/target_disc', grid_image, iteration)
                 grid_image = make_grid(
                     target_boundary[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/target_boundary', grid_image, iteration)
-                grid_image = make_grid(torch.sigmoid(oS)[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/prediction_cup', grid_image, iteration)
-                grid_image = make_grid(torch.sigmoid(oS)[0, 1, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/prediction_disc', grid_image, iteration)
-                grid_image = make_grid(torch.sigmoid(boundaryS)[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                self.writer.add_image('DomainS/prediction_boundary', grid_image, iteration)
+                self.writer.add_image(
+                    'DomainS/target_boundary', grid_image, iteration)
+                grid_image = make_grid(torch.sigmoid(
+                    oS)[0, 0, ...].clone().cpu().data, 1, normalize=True)
+                self.writer.add_image(
+                    'DomainS/prediction_cup', grid_image, iteration)
+                grid_image = make_grid(torch.sigmoid(
+                    oS)[0, 1, ...].clone().cpu().data, 1, normalize=True)
+                self.writer.add_image(
+                    'DomainS/prediction_disc', grid_image, iteration)
+                grid_image = make_grid(torch.sigmoid(boundaryS)[
+                                       0, 0, ...].clone().cpu().data, 1, normalize=True)
+                self.writer.add_image(
+                    'DomainS/prediction_boundary', grid_image, iteration)
 
             if self.epoch > self.warmup_epoch:
                 # # 2. train generator with images from different domain
@@ -287,18 +298,22 @@ class Trainer(object):
 
                 imageT = sampleT['image'].cuda()
 
-                oT, boundaryT = self.model_gen(imageT)
-                uncertainty_mapT = -1.0 * torch.sigmoid(oT) * torch.log(torch.sigmoid(oT) + smooth)
+                oT, boundaryT, _ = self.model_gen(imageT)
+                uncertainty_mapT = -1.0 * \
+                    torch.sigmoid(oT) * torch.log(torch.sigmoid(oT) + smooth)
                 D_out2 = self.model_dis(torch.sigmoid(boundaryT))
                 D_out1 = self.model_dis2(uncertainty_mapT)
 
-                loss_adv_diff1 = F.binary_cross_entropy_with_logits(D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_domain_label).cuda())
-                loss_adv_diff2 = F.binary_cross_entropy_with_logits(D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_domain_label).cuda())
+                loss_adv_diff1 = F.binary_cross_entropy_with_logits(
+                    D_out1, torch.FloatTensor(D_out1.data.size()).fill_(source_domain_label).cuda())
+                loss_adv_diff2 = F.binary_cross_entropy_with_logits(
+                    D_out2, torch.FloatTensor(D_out2.data.size()).fill_(source_domain_label).cuda())
                 loss_adv_diff = 0.01 * (loss_adv_diff1 + loss_adv_diff2)
                 self.running_adv_diff_loss += loss_adv_diff.item()
                 loss_adv_diff_data = loss_adv_diff.data.item()
                 if np.isnan(loss_adv_diff_data):
-                    raise ValueError('loss_adv_diff_data is nan while training')
+                    raise ValueError(
+                        'loss_adv_diff_data is nan while training')
 
                 loss_adv_diff.backward()
                 self.optim_gen.step()
@@ -313,7 +328,8 @@ class Trainer(object):
 
                 boundaryS = boundaryS.detach()
                 oS = oS.detach()
-                uncertainty_mapS = -1.0 * torch.sigmoid(oS) * torch.log(torch.sigmoid(oS) + smooth)
+                uncertainty_mapS = -1.0 * \
+                    torch.sigmoid(oS) * torch.log(torch.sigmoid(oS) + smooth)
                 D_out2 = self.model_dis(torch.sigmoid(boundaryS))
                 D_out1 = self.model_dis2(uncertainty_mapS)
 
@@ -333,7 +349,8 @@ class Trainer(object):
 
                 boundaryT = boundaryT.detach()
                 oT = oT.detach()
-                uncertainty_mapT = -1.0 * torch.sigmoid(oT) * torch.log(torch.sigmoid(oT) + smooth)
+                uncertainty_mapT = -1.0 * \
+                    torch.sigmoid(oT) * torch.log(torch.sigmoid(oT) + smooth)
                 D_out2 = self.model_dis(torch.sigmoid(boundaryT))
                 D_out1 = self.model_dis2(uncertainty_mapT)
 
@@ -355,36 +372,51 @@ class Trainer(object):
                 if iteration % 30 == 0:
                     grid_image = make_grid(
                         imageT[0, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainT/image', grid_image, iteration)
+                    self.writer.add_image(
+                        'DomainT/image', grid_image, iteration)
                     grid_image = make_grid(
                         sampleT['map'][0, 0, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainT/target_cup', grid_image, iteration)
+                    self.writer.add_image(
+                        'DomainT/target_cup', grid_image, iteration)
                     grid_image = make_grid(
                         sampleT['map'][0, 1, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainT/target_disc', grid_image, iteration)
-                    grid_image = make_grid(torch.sigmoid(oT)[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainT/prediction_cup', grid_image, iteration)
-                    grid_image = make_grid(torch.sigmoid(oT)[0, 1, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainT/prediction_disc', grid_image, iteration)
-                    grid_image = make_grid(boundaryS[0, 0, ...].clone().cpu().data, 1, normalize=True)
-                    self.writer.add_image('DomainS/boundaryS', grid_image, iteration)
+                    self.writer.add_image(
+                        'DomainT/target_disc', grid_image, iteration)
+                    grid_image = make_grid(torch.sigmoid(
+                        oT)[0, 0, ...].clone().cpu().data, 1, normalize=True)
+                    self.writer.add_image(
+                        'DomainT/prediction_cup', grid_image, iteration)
+                    grid_image = make_grid(torch.sigmoid(
+                        oT)[0, 1, ...].clone().cpu().data, 1, normalize=True)
+                    self.writer.add_image(
+                        'DomainT/prediction_disc', grid_image, iteration)
+                    grid_image = make_grid(
+                        boundaryS[0, 0, ...].clone().cpu().data, 1, normalize=True)
+                    self.writer.add_image(
+                        'DomainS/boundaryS', grid_image, iteration)
                     grid_image = make_grid(boundaryT[0, 0, ...].clone().cpu().data, 1,
                                            normalize=True)
-                    self.writer.add_image('DomainT/boundaryT', grid_image, iteration)
+                    self.writer.add_image(
+                        'DomainT/boundaryT', grid_image, iteration)
 
-                self.writer.add_scalar('train_adv/loss_adv_diff', loss_adv_diff_data, iteration)
-                self.writer.add_scalar('train_dis/loss_D_same', loss_D_same_data, iteration)
-                self.writer.add_scalar('train_dis/loss_D_diff', loss_D_diff_data, iteration)
-            self.writer.add_scalar('train_gen/loss_seg', loss_seg_data, iteration)
+                self.writer.add_scalar(
+                    'train_adv/loss_adv_diff', loss_adv_diff_data, iteration)
+                self.writer.add_scalar(
+                    'train_dis/loss_D_same', loss_D_same_data, iteration)
+                self.writer.add_scalar(
+                    'train_dis/loss_D_diff', loss_D_diff_data, iteration)
+            self.writer.add_scalar('train_gen/loss_seg',
+                                   loss_seg_data, iteration)
 
-            metrics.append((loss_seg_data, loss_adv_diff_data, loss_D_same_data, loss_D_diff_data))
+            metrics.append((loss_seg_data, loss_adv_diff_data,
+                           loss_D_same_data, loss_D_diff_data))
             metrics = np.mean(metrics, axis=0)
 
             with open(osp.join(self.out, 'log.csv'), 'a') as f:
                 elapsed_time = (
                     datetime.now(pytz.timezone(self.time_zone)) -
                     self.timestamp_start).total_seconds()
-                log = [self.epoch, self.iteration]  + \
+                log = [self.epoch, self.iteration] + \
                     metrics.tolist() + [''] * 5 + [elapsed_time]
                 log = map(str, log)
                 f.write(','.join(log) + '\n')
@@ -404,11 +436,11 @@ class Trainer(object):
                self.running_adv_diff_loss,
                self.running_dis_same_loss, self.running_dis_diff_loss, stop_time - start_time))
 
-
     def train(self):
-        for epoch in tqdm.trange(self.epoch, self.max_epoch,desc='Train', ncols=80):
+        for epoch in tqdm.trange(self.epoch, self.max_epoch,
+                                 desc='Train', ncols=80):
             self.epoch = epoch
-            self.train_epoch() # train for one epoch
+            self.train_epoch()
             if self.stop_epoch == self.epoch:
                 print('Stop epoch at %d' % self.stop_epoch)
                 break
@@ -417,10 +449,8 @@ class Trainer(object):
                 _lr_gen = self.lr_gen * 0.2
                 for param_group in self.optim_gen.param_groups:
                     param_group['lr'] = _lr_gen
-            self.writer.add_scalar('lr_gen', get_lr(self.optim_gen), self.epoch * (len(self.domain_loaderS)))
+            self.writer.add_scalar('lr_gen', get_lr(
+                self.optim_gen), self.epoch * (len(self.domain_loaderS)))
             if (self.epoch+1) % self.interval_validate == 0:
                 self.validate()
         self.writer.close()
-
-
-
