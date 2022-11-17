@@ -114,7 +114,7 @@ class Trainer(object):
                     data, target_map, target_boundary = data.cuda(
                     ), target_map.cuda(), target_boundary.cuda()
                 with torch.no_grad():
-                    predictions, boundary = self.model_gen(data)
+                    predictions, boundary,_ = self.model_gen(data)
 
                 loss = F.binary_cross_entropy_with_logits(
                     predictions, target_map)
