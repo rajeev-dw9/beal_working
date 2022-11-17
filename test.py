@@ -122,7 +122,7 @@ def main():
         if torch.cuda.is_available():
             data, target = data.cuda(), target.cuda()
         data, target = Variable(data), Variable(target)
-        prediction, boundary = model(data)
+        prediction, boundary, _ = model(data)
         prediction = torch.nn.functional.interpolate(prediction, size=(target.size()[2], target.size()[3]),
                                                      mode="bilinear")
         boundary = torch.nn.functional.interpolate(boundary, size=(target.size()[2], target.size()[3]),
