@@ -32,7 +32,7 @@ def main():
 
     parser.add_argument(
         '--data-dir',
-        default='/home/sjwang/ssd1T/fundus/domain_adaptation/',
+        default='/content/drive/MyDrive/fundus/fundus',
         help='data root path'
     )
     parser.add_argument(
